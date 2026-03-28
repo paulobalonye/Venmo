@@ -1,0 +1,28 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: "20"
+  PNPM_VERSION: "9"
+
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    environment: production
+    needs: []
+    # Deployment steps will be configured once infrastructure is provisioned (VEN-4)
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Placeholder — configure deployment target
+        run: |
+          echo "Deployment target not yet configured."
+          echo "Will be set up once infrastructure decisions are finalized (see VEN-4)."

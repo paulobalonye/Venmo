@@ -1,0 +1,39 @@
+# Build stage
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+RUN corepack enable && corepack prepare pnpm@9 --activate
+
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml turbo.json tsconfig.json ./
+COPY apps/backend/package.json ./apps/backend/
+COPY packages/shared/package.json ./packages/shared/
+
+RUN pnpm install --frozen-lockfile
+
+COPY apps/backend/ ./apps/backend/
+COPY packages/shared/ ./packages/shared/
+
+RUN pnpm --filter @venmo/shared build
+RUN pnpm --filter @venmo/backend build
+
+# Production stage
+FROM node:20-alpine AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+RUN corepack enable && corepack prepare pnpm@9 --activate
+
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY apps/backend/package.json ./apps/backend/
+
+RUN pnpm install --frozen-lockfile --prod
+
+COPY --from=builder /app/apps/backend/dist ./apps/backend/dist
+COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
+
+EXPOSE 3001
+
+USER node
+
+CMD ["node", "apps/backend/dist/index.js"]
