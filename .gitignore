@@ -40,3 +40,9 @@ playwright-report
 
 # Docker
 .docker-data
+
+# Python
+__pycache__/
+*.py[cod]
+.coverage
+.pytest_cache/
